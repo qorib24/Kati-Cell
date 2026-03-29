@@ -643,7 +643,7 @@
 
     function normalizePhoneNumber(input) {
       let n = input.replace(/\D/g, "");
-      if (n.startsWith("62"))      n = "0" + n.substring(1);
+      if (n.startsWith("62"))     n = "0" + n.substring(2);
       else if (n.startsWith("8")) n = "0" + n;
       return n;
     }
