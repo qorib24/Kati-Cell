@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Penjualan Paket Data</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+    import { getDatabase, ref, push, set, get } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCPxfOmmqsb0lOcLl10JiEobZx7RAzKaZI",
+      authDomain: "catatannomer-f2924.firebaseapp.com",
+      databaseURL: "https://catatannomer-f2924-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "catatannomer-f2924",
+      storageBucket: "catatannomer-f2924.firebasestorage.app",
+      messagingSenderId: "200096420187",
+      appId: "1:200096420187:web:28197e768a1126e26a8a7e",
+      measurementId: "G-VL0H92KSQ7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.firebaseDb = db;
+    window.firebaseRef = ref;
+    window.firebasePush = push;
+    window.firebaseSet = set;
+    window.firebaseGet = get;
+  </script>
+
+  <style>
+    /* ═══════════════════════════════════════
+       THEME & VARIABLES
+    ═══════════════════════════════════════ */
+    :root {
+      --primary: #0d6efd;
+      --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
+      --secondary: #e9ecef;
+      --text: #2b2b2b;
+      --text-muted: #6c757d;
+      --success: #198754;
+      --warning: #ffc107;
+      --danger: #dc3545;
+      --bg: #f4f6fa;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ═══════════════════════════════════════
+       HEADER (E-WALLET STYLE)
+    ═══════════════════════════════════════ */
+    .header-bg {
+      background: var(--primary-gradient);
+      padding: 40px 20px 80px;
+      border-bottom-left-radius: 40px;
+      border-bottom-right-radius: 40px;
+      color: white;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .header-bg::after {
+      content: '';
+      position: absolute;
+      top: -50px; right: -50px;
+      width: 200px; height: 200px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+    .header-bg::before {
+      content: '';
+      position: absolute;
+      bottom: -30px; left: -30px;
+      width: 150px; height: 150px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+
+    .brand-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .brand-title i {
+      font-size: 1.8rem;
+    }
+    .brand-subtitle {
+      font-size: 0.9rem;
+      font-weight: 400;
+      opacity: 0.9;
+    }
+
+    /* ═══════════════════════════════════════
+       MAIN CONTAINER
+    ═══════════════════════════════════════ */
+    .main-wrapper {
+      max-width: 540px; /* Kembali ke modal/card 1 kolom */
+      margin: -60px auto 40px;
+      padding: 0 16px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ═══════════════════════════════════════
+       TABS / TOGGLES
+    ═══════════════════════════════════════ */
+    .custom-tabs {
+      background: #ffffff;
+      padding: 6px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      margin-bottom: 24px;
+      display: flex;
+    }
+    .custom-tabs .nav-link {
+      flex: 1;
+      text-align: center;
+      color: var(--text-muted);
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 12px;
+      transition: all 0.3s ease;
+      border: none;
+      background: transparent;
+    }
+    .custom-tabs .nav-link:hover {
+      color: var(--text);
+    }
+    .custom-tabs .nav-link.active {
+      background: var(--primary-gradient);
+      color: white;
+      box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2);
+    }
+
+    /* ═══════════════════════════════════════
+       CARDS
+    ═══════════════════════════════════════ */
+    .custom-card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+      border: none;
+      margin-bottom: 24px;
+      animation: slideUp 0.5s ease both;
+    }
+    .custom-card:nth-child(2) { animation-delay: 0.1s; }
+    .custom-card:nth-child(3) { animation-delay: 0.2s; }
+
+    .card-title-custom {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #f0f2f5;
+      padding-bottom: 12px;
+    }
+    .title-icon {
+      width: 38px; height: 38px;
+      background: rgba(13, 110, 253, 0.1);
+      color: var(--primary);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    /* ═══════════════════════════════════════
+       FORM INPUTS
+    ═══════════════════════════════════════ */
+    .form-group-custom {
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .form-label-custom {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: block;
+    }
+    .input-icon-wrapper {
+      position: relative;
+    }
+    .input-icon-wrapper i {
+      position: absolute;
+      top: 50%;
+      left: 16px;
+      transform: translateY(-50%);
+      color: #adb5bd;
+      font-size: 1.1rem;
+      transition: color var(--transition);
+    }
+    .form-control-custom {
+      width: 100%;
+      background: #f8f9fa;
+      border: 1.5px solid #e9ecef;
+      border-radius: var(--radius-md);
+      padding: 14px 16px 14px 44px;
+      font-size: 0.95rem;
+      color: var(--text);
+      font-weight: 500;
+      transition: all var(--transition);
+    }
+    .form-control-custom:focus {
+      background: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+      outline: none;
+    }
+    .form-control-custom:focus + i,
+    .form-control-custom:not(:placeholder-shown) + i {
+      color: var(--primary);
+    }
+
+    /* Submit Button */
+    .btn-submit {
+      width: 100%;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 20px rgba(13, 110, 253, 0.25);
+      transition: transform var(--transition), box-shadow var(--transition);
+      margin-top: 10px;
+    }
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 25px rgba(13, 110, 253, 0.35);
+    }
+    .btn-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    /* ═══════════════════════════════════════
+       NOTIFICATION Toast
+    ═══════════════════════════════════════ */
+    #notification {
+      display: none;
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      animation: slideDown 0.3s ease both;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+    }
+    #notification.success {
+      background: #d1e7dd;
+      border: 1px solid #badbcc;
+      color: #0f5132;
+    }
+    #notification.error {
+      background: #f8d7da;
+      border: 1px solid #f5c2c7;
+      color: #842029;
+    }
+    .notif-inner {
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    /* ═══════════════════════════════════════
+       RESULT INFO & STATS
+    ═══════════════════════════════════════ */
+    #lastNumberInfo { display: none; }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+      border: 1px solid #e9ecef;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .stat-badge {
+      background: var(--primary);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2);
+    }
+
+    .history-header {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 24px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: #fff;
+      border: 1px solid #e9ecef;
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+      transition: border-color var(--transition);
+    }
+    .history-item:hover {
+      border-color: #dee2e6;
+      background: #fdfdfe;
+    }
+
+    .history-icon-box {
+      width: 42px; height: 42px;
+      background: #f0f7ff;
+      color: var(--primary);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .history-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .history-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-time {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .badge-latest {
+      background: #d1e7dd;
+      color: #0f5132;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    /* ═══════════════════════════════════════
+       MODAL (OVERRIDE BOOTSTRAP DEFAULT)
+    ═══════════════════════════════════════ */
+    #confirmModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1050;
+    }
+    #confirmModal.active { display: flex; }
+
+    .custom-modal-content {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+      animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modal-warning-icon {
+      width: 64px; height: 64px;
+      background: #fff3cd;
+      color: #ffc107;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 20px;
+    }
+    .modal-title-text {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    #confirmMessage {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .modal-btn-group {
+      display: flex;
+      gap: 12px;
+    }
+    .btn-yes, .btn-no {
+      flex: 1;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s;
+    }
+    .btn-yes { background: var(--primary); color: #fff; }
+    .btn-yes:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-no { background: #f8f9fa; color: var(--text-muted); border: 1px solid #e9ecef; }
+    .btn-no:hover { background: #e9ecef; color: var(--text); }
+
+    /* ANIMATIONS */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes zoomIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER WALLET / E-COMMERCE THEME ── -->
+  <header class="header-bg">
+    <div class="brand-title">
+      <i class="bi bi-phone-vibrate"></i> Kati Cell
+    </div>
+    <div class="brand-subtitle">Top-Up Paket Data Otomatis</div>
+  </header>
+
+  <main class="main-wrapper">
+    <!-- ── NOTIFICATION ── -->
+    <div id="notification">
+      <div class="notif-inner">
+        <i id="notifIcon"></i>
+        <span id="notifMsg"></span>
+      </div>
+    </div>
+
+    <!-- ── TABS NAV ── -->
+    <ul class="nav custom-tabs" id="formTabs" role="tablist">
+      <li class="nav-item" role="presentation" style="flex:1;">
+        <button class="nav-link active w-100" id="input-tab" data-bs-toggle="pill" data-bs-target="#input-pane" type="button" role="tab" aria-controls="input-pane" aria-selected="true">
+          <i class="bi bi-wallet2 me-1"></i> Penjualan
+        </button>
+      </li>
+      <li class="nav-item" role="presentation" style="flex:1;">
+        <button class="nav-link w-100" id="check-tab" data-bs-toggle="pill" data-bs-target="#check-pane" type="button" role="tab" aria-controls="check-pane" aria-selected="false">
+          <i class="bi bi-search me-1"></i> Cek Riwayat
+        </button>
+      </li>
+    </ul>
+
+    <!-- ── TAB CONTENT ── -->
+    <div class="tab-content" id="formTabsContent">
+      
+      <!-- TAB 1: Form Penjualan -->
+      <div class="tab-pane fade show active" id="input-pane" role="tabpanel" aria-labelledby="input-tab" tabindex="0">
+        <div class="custom-card mb-4 mt-2">
+          <div class="card-title-custom">
+            <div class="title-icon"><i class="bi bi-wallet2"></i></div>
+            Form Penjualan Paket Data
+          </div>
+
+          <form id="numberForm" novalidate>
+            <!-- Name -->
+            <div class="form-group-custom">
+              <label class="form-label-custom" for="nameInput">Nama Pelanggan</label>
+              <div class="input-icon-wrapper">
+                <input type="text" class="form-control-custom" id="nameInput" placeholder="Contoh: Budi Santoso" autocomplete="off" required>
+                <i class="bi bi-person"></i>
+              </div>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="form-group-custom mb-4">
+              <label class="form-label-custom" for="numberInput">Nomor Handphone</label>
+              <div class="input-icon-wrapper">
+                <input type="tel" class="form-control-custom" id="numberInput" placeholder="Contoh: 081234567890" autocomplete="off" inputmode="tel" required>
+                <i class="bi bi-telephone"></i>
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn-submit" id="submitBtn">
+              <span class="spinner-border spinner-border-sm" role="status" style="display:none;"></span>
+              <i class="bi bi-shield-check btn-icon"></i>
+              <span class="btn-text">Proses Transaksi</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- TAB 2: Form Cek Nomor -->
+      <div class="tab-pane fade" id="check-pane" role="tabpanel" aria-labelledby="check-tab" tabindex="0">
+        <div class="custom-card mb-4 mt-2" id="checkCard">
+          <div class="card-title-custom">
+            <div class="title-icon"><i class="bi bi-search"></i></div>
+            Cari Riwayat Nomor
+          </div>
+          <form id="checkForm" novalidate>
+            <div class="form-group-custom mb-4">
+              <div class="input-icon-wrapper">
+                <input type="tel" class="form-control-custom" id="checkNumberInput" placeholder="Masukkan Nomor..." autocomplete="off" inputmode="tel" required>
+                <i class="bi bi-search"></i>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-outline-primary w-100" id="checkBtn" style="border-radius:12px; font-weight:600; padding:15px; border: 2px solid var(--primary);">
+              <i class="bi bi-clock-history me-2"></i> Cek Riwayat Transaksi
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div> <!-- End Tab Content -->
+
+    <!-- ── RESULT / STATS CARD ── -->
+    <div class="custom-card" id="lastNumberInfo">
+      <div class="card-title-custom">
+        <div class="title-icon"><i class="bi bi-receipt"></i></div>
+        Riwayat Transaksi Pelanggan
+      </div>
+
+      <div class="stat-row">
+        <span class="stat-label">Nomor Tujuan</span>
+        <span class="stat-value" id="displayNumber">—</span>
+      </div>
+      
+      <div class="stat-row">
+        <span class="stat-label">Total Pembelian</span>
+        <span class="stat-badge" id="displayCount">0</span>
+      </div>
+
+      <div class="history-header">
+        <i class="bi bi-clock-history text-primary"></i> Transaksi Terakhir
+      </div>
+      
+      <div id="historyList"></div>
+    </div>
+  </main>
+
+  <!-- ── MODAL KONFIRMASI (LIMIT 4X) ── -->
+  <div id="confirmModal" role="dialog" aria-modal="true">
+    <div class="custom-modal-content">
+      <div class="modal-warning-icon">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </div>
+      <h3 class="modal-title-text">Batas Kuota Transaksi</h3>
+      <p id="confirmMessage"></p>
+      <div class="modal-btn-group">
+        <button class="btn-no" id="confirmNo">Batalkan</button>
+        <button class="btn-yes" id="confirmYes">Ya, Lanjutkan &amp; Beli</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- ── JAVASCRIPT LOGIC (Keep Original Logic) ── -->
+  <script>
+    /* ─────────────── WhatsApp API ─────────────── */
+    async function kirimWhatsApp(nomor, pesan) {
+      try {
+        await fetch("https://script.google.com/macros/s/AKfycbzg8-GjZwowQp2fAlu5vpmMBvWYyw1Q52lSJE-70kKNbMNAg9zbdIfg7GIzoLMxfOW5HQ/exec", {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify({ nomor, pesan })
+        });
+      } catch (err) {
+        console.error("Gagal kirim WA:", err);
+      }
+    }
+
+    /* ─────────────── Formatting Helpers ─────────────── */
+    function formatDateTime(date) {
+      return new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      }).format(date);
+    }
+
+    function normalizePhoneNumber(input) {
+      let n = input.replace(/\D/g, "");
+      if (n.startsWith("0"))      n = "62" + n.substring(1);
+      else if (n.startsWith("8")) n = "62" + n;
+      return n;
+    }
+
+    /* ─────────────── Firebase Wrappers ─────────────── */
+    function fbDb()   { return window.firebaseDb; }
+    function fbRef()  { return window.firebaseRef; }
+    function fbPush() { return window.firebasePush; }
+    function fbSet()  { return window.firebaseSet; }
+    function fbGet()  { return window.firebaseGet; }
+
+    async function getTotalCount(number) {
+      try {
+        const snap = await fbGet()(fbRef()(fbDb(), `numbers/${number}`));
+        return snap.exists() ? Object.keys(snap.val()).length : 0;
+      } catch (e) {
+        console.error("Gagal getTotalCount:", e); return 0;
+      }
+    }
+
+    async function saveNumber(number, nama) {
+      const newRecord = fbPush()(fbRef()(fbDb(), `numbers/${number}`));
+      await fbSet()(newRecord, { timestamp: new Date().toISOString(), nama });
+    }
+
+    async function deleteOldNumber(number) {
+      await fbSet()(fbRef()(fbDb(), `numbers/${number}`), null);
+    }
+
+    async function updateNumberInfo(number) {
+      const snap = await fbGet()(fbRef()(fbDb(), `numbers/${number}`));
+      let entries = [];
+      if (snap.exists()) {
+        entries = Object.values(snap.val()).map(item => ({
+          waktu: new Date(item.timestamp),
+          nama: item.nama || "-"
+        }));
+      }
+      entries.sort((a, b) => b.waktu - a.waktu);
+
+      document.getElementById('displayNumber').textContent = number;
+      document.getElementById('displayCount').textContent  = entries.length;
+
+      const historyList = document.getElementById('historyList');
+      historyList.innerHTML = '';
+
+      entries.forEach((item, index) => {
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML = `
+          <div class="history-icon-box">#${entries.length - index}</div>
+          <div class="history-content">
+            <div class="history-name">${item.nama}</div>
+            <div class="history-time">${formatDateTime(item.waktu)}</div>
+          </div>
+          ${index === 0 ? '<span class="badge-latest">Terbaru</span>' : ''}
+        `;
+        historyList.appendChild(el);
+      });
+
+      // Show the info card smoothly
+      const infoCard = document.getElementById('lastNumberInfo');
+      infoCard.style.display = 'block';
+    }
+
+    /* ─────────────── UI Notification ─────────────── */
+    let _notifTimer = null;
+    function showNotification(message, type = 'success') {
+      const el = document.getElementById('notification');
+      const iconClass = type === 'success' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+
+      el.className = type;
+      el.style.display = 'block';
+      document.getElementById('notifIcon').className = `bi ${iconClass}`;
+      document.getElementById('notifMsg').textContent = message;
+
+      clearTimeout(_notifTimer);
+      _notifTimer = setTimeout(() => {
+        el.style.display = 'none';
+        el.className = '';
+      }, 4000);
+    }
+
+    /* ─────────────── Modal Confirm ─────────────── */
+    function showConfirmDialog(number, count) {
+      const modal = document.getElementById('confirmModal');
+      document.getElementById('confirmMessage').textContent =
+        `Nomor ini sudah ${count}x digunakan untuk Transaksi. Apakah pelanggan ingin membeli lagi agar bisa reset ulang riwayat nomor ini?`;
+      modal.classList.add('active');
+
+      return new Promise((resolve) => {
+        function onYes() { cleanup(); modal.classList.remove('active'); resolve(true); }
+        function onNo()  { cleanup(); modal.classList.remove('active'); resolve(false); }
+        function onBg(e) { if (e.target === modal) { cleanup(); modal.classList.remove('active'); resolve(false); } }
+
+        function cleanup() {
+          document.getElementById('confirmYes').removeEventListener('click', onYes);
+          document.getElementById('confirmNo').removeEventListener('click', onNo);
+          modal.removeEventListener('click', onBg);
+        }
+
+        document.getElementById('confirmYes').addEventListener('click', onYes);
+        document.getElementById('confirmNo').addEventListener('click', onNo);
+        modal.addEventListener('click', onBg);
+      });
+    }
+
+    /* ─────────────── Form Submit Logic ─────────────── */
+    function setSubmitState(loading) {
+      const btn  = document.getElementById('submitBtn');
+      const icon = btn.querySelector('.btn-icon');
+      const text = btn.querySelector('.btn-text');
+      const spinner = btn.querySelector('.spinner-border');
+
+      btn.disabled = loading;
+      if(icon) icon.style.display = loading ? 'none' : 'inline-block';
+      if(spinner) spinner.style.display = loading ? 'inline-block' : 'none';
+      text.textContent = loading ? 'Memproses Transaksi...' : 'Proses Transaksi';
+    }
+
+    document.getElementById('numberForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nameInput   = document.getElementById('nameInput');
+      const numberInput = document.getElementById('numberInput');
+
+      const nama = nameInput.value.trim();
+      if (!nama) {
+        showNotification("Nama pelanggan wajib diisi!", "error");
+        nameInput.focus();
+        return;
+      }
+
+      let number = normalizePhoneNumber(numberInput.value.trim());
+      if (!number || number.length < 9) {
+        showNotification("Nomor telepon tidak valid! (min. 9 digit)", "error");
+        numberInput.focus();
+        return;
+      }
+
+      setSubmitState(true);
+
+      try {
+        const currentCount = await getTotalCount(number);
+
+        // Max limit is 4
+        if (currentCount >= 4) {
+          const confirmed = await showConfirmDialog(number, currentCount);
+          if (!confirmed) {
+            showNotification('Transaksi dibatalkan.', 'error');
+            return;
+          }
+          await deleteOldNumber(number);
+          showNotification('Riwayat transaksi lama dihapus. Memulai pesanan baru.', 'success');
+        }
+
+        await saveNumber(number, nama);
+        const newCount = await getTotalCount(number);
+
+        // Jika Transaksi / Input pertama saja
+        if (newCount === 1) {
+          await kirimWhatsApp("6281998226528",
+            `🆕 *PEMBELIAN PAKET BARU*\n\n👤 Nama: ${nama}\n📱 Nomor: ${number}\n📊 Status: Pembelian Pertama\n⏰ Waktu: ${new Date().toLocaleString("id-ID")}\n\n✅ Nomor baru masuk sistem`
+          );
+        }
+
+        // WhatsApp trigger format khusus
+        await kirimWhatsApp("628997057555", `XDE15.${number}.081998`);
+
+        showNotification(`✅ Transaksi berhasil diproses! Total Pembelian: ${newCount}`, 'success');
+
+        await updateNumberInfo(number);
+
+        nameInput.value   = '';
+        numberInput.value = '';
+
+      } catch (err) {
+        console.error("Error saat submit:", err);
+        showNotification("Terjadi kesalahan sistem! Coba lagi.", "error");
+      } finally {
+        setSubmitState(false);
+      }
+    });
+
+    /* ─────────────── Form Cek Riwayat Logic ─────────────── */
+    document.getElementById('checkForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('checkBtn');
+      const input = document.getElementById('checkNumberInput');
+      let number = normalizePhoneNumber(input.value.trim());
+
+      if (!number || number.length < 9) {
+        showNotification("Nomor telepon tidak valid untuk pencarian!", "error");
+        input.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Mencari...';
+
+      try {
+        const count = await getTotalCount(number);
+        
+        if (count === 0) {
+          showNotification(`Nomor ${number} belum pernah digunakan transaksi.`, "error");
+          document.getElementById('lastNumberInfo').style.display = 'none';
+        } else {
+          showNotification(`Ditemukan ${count} transaksi untuk nomor ini.`, "success");
+          await updateNumberInfo(number);
+          // Scroll smoothly to result
+          document.getElementById('lastNumberInfo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch (err) {
+        console.error("Error cek nomor:", err);
+        showNotification("Terjadi kesalahan saat mencari data!", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-clock-history me-2"></i> Cek Riwayat Transaksi';
+      }
+    });
+  </script>
+</body>
+</html>
